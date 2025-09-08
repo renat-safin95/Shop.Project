@@ -1,0 +1,20 @@
+<h2>Add related products</h2>
+
+<% if (otherProducts && otherProducts.length > 0) { %>
+  <div class="product-related-add-list">
+    <% otherProducts.forEach(function(op) { %>
+      <div class="product-related-item">
+        <strong><%= op.title %></strong> — $<%= op.price %>
+        <div class="add-mark">
+          <label for="add-<%= op.id %>">Add</label>
+          <input type="checkbox"
+                 id="add-<%= op.id %>"
+                 value="<%= op.id %>"
+                 name="relatedToAdd">
+        </div>
+      </div>
+    <% }); %>
+  </div>
+<% } else { %>
+  <p>No products available for adding</p>
+<% } %>

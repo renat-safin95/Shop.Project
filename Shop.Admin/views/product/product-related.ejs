@@ -1,0 +1,20 @@
+<h2>Similar products</h2>
+
+<% if (item.related && item.related.length > 0) { %>
+  <div class="product-related-list">
+    <% item.related.forEach(function(rp) { %>
+      <div class="product-related-item">
+        <strong><%= rp.title %></strong> — $<%= rp.price %>
+        <div class="remove-mark">
+          <label for="rel-<%= rp.id %>">Mark to remove</label>
+          <input type="checkbox"
+                 id="rel-<%= rp.id %>"
+                 value="<%= rp.id %>"
+                 name="relatedToRemove">
+        </div>
+      </div>
+    <% }); %>
+  </div>
+<% } else { %>
+  <p>No related products yet</p>
+<% } %>
