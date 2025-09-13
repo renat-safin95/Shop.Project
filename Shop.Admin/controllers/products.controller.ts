@@ -5,10 +5,12 @@ import {
   removeProduct,
   searchProducts,
   updateProduct,
+  createProduct
 } from "../models/products.model";
 import { IProductFilterPayload } from "@Shared/types";
-import { IProductEditData } from "../types";
+import { INewProductData, IProductEditData } from "../types";
 import { throwServerError } from "./helper";
+import { initDataBase } from "../../Server/services/db"
 
 export const productsRouter = Router();
 
@@ -38,6 +40,27 @@ productsRouter.get(
     }
   }
 );
+
+productsRouter.get("/new-product", (req: Request, res: Response) => {
+  if (req.session.username !== "admin") {
+    res.status(403).send("Forbidden");
+    return;
+  }
+  res.render("admin/new-product");
+});
+
+productsRouter.post("/new-product", async (req: Request<{}, {}, INewProductData>, res: Response) => {
+  if (req.session.username !== "admin") {
+    res.status(403).send("Forbidden");
+    return;
+  }
+
+  const { name, description, price } = req.body;
+  const newProduct = await createProduct({ name, description, price: Number(price) });
+
+  res.redirect(`/${process.env.ADMIN_PATH}/${newProduct.id}`);
+});
+
 
 productsRouter.get('/:id', async (
   req: Request<{ id: string }>,
@@ -108,5 +131,48 @@ productsRouter.post("/save/:id", async (req: Request<{ id: string }, {}, IProduc
     });
   } catch (e) {
     throwServerError(res, e);
+  }
+});
+
+productsRouter.post(
+  "/new-product",
+  async (req: Request<{}, {}, INewProductData>, res: Response) => {
+    try {
+      if (req.session.username !== "admin") {
+        res.status(403).send("Forbidden");
+        return;
+      }
+
+      const { name, description, price } = req.body;
+
+      const newProduct = await createProduct({
+        name,
+        description,
+        price: Number(price),
+      });
+
+      res.redirect(`/${process.env.ADMIN_PATH}/`);
+    } catch (e) {
+      throwServerError(res, e);
+    }
+  }
+);
+
+productsRouter.get("/stats", async (_, res) => {
+  try {
+    const connection = await initDataBase();
+    if (!connection) {
+      return res.status(500).json({ error: "DB connection failed" });
+    }
+
+    const [rows] = await connection.query(
+      "SELECT COUNT(*) as count, SUM(price) as totalPrice FROM products"
+    );
+
+    const stats = (rows as any)[0];
+    res.json(stats);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });

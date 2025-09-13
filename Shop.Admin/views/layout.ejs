@@ -9,6 +9,11 @@
 <body>
     <header class="header">
         <div class="logo"></div>
+        
+        <div><% if (user) { %>
+            <a href="/admin/new-product">Add product</a>
+            <% } %>
+        </div>
 
         <div>
             <a href="<%= `/${process.env.ADMIN_PATH}/auth/logout` %>">LOGOUT</a>

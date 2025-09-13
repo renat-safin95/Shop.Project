@@ -61,5 +61,6 @@ export const INSERT_RELATED_PRODUCTS = `
 
 export const DELETE_RELATED_PRODUCTS = `
   DELETE FROM RelatedProducts
-  WHERE product_id IN (?)
+  WHERE product_id = ?
+  AND related_product_id IN (?);
 `;

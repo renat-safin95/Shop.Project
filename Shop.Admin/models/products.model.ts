@@ -127,3 +127,15 @@ export async function updateProduct(
     return null;
   }
 }
+
+export async function createProduct(productData: {
+  name: string;
+  description: string;
+  price: number;
+}): Promise<IProduct> {
+  const response = await axios.post<IProduct>(
+    "http://localhost:3000/products",
+    productData
+  );
+  return response.data;
+}

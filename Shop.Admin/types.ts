@@ -15,3 +15,9 @@ export interface IProductEditData {
   relatedToAdd?: string | string[];
   relatedToRemove?: string | string[];
 }
+
+export interface INewProductData {
+  name: string;
+  description: string;
+  price: number;
+}

@@ -1,7 +1,7 @@
 import express, { Express } from "express";
 
-const host = process.env.LOCAL_PATH;
-const port = Number(process.env.LOCAL_PORT);
+const host = process.env.LOCAL_PATH || 'localhost';
+const port = Number(process.env.LOCAL_PORT) || 3000;
 
 export function initServer(): Express {
   const app = express();
