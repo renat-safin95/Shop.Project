@@ -166,7 +166,6 @@ productsRouter.post('/', async (
 
       await dbConnection.query<OkPacket>(INSERT_PRODUCT_IMAGES_QUERY, [values]);
 
-      // собираем массив изображений для возврата
       insertedImages = values.map(([id, url, productId, main]) => ({
         id: id as string,
         url: url as string,
@@ -394,7 +393,6 @@ productsRouter.post('/related', async (
       return;
     }
 
-    // превращаем [{a, b}, {c, d}] -> [[a, b], [c, d]]
     const values = pairs.map(p => [p.product_id, p.related_product_id]);
 
     await dbConnection.query<OkPacket>(INSERT_RELATED_PRODUCTS, [values]);

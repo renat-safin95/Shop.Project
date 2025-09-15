@@ -1,10 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: "/",
 });
-
-// export const fetchStats = () => api.get("/products/stats");
 
 export const fetchStats = () => {
   console.log("fetchStats: Making API call to /products/stats");
@@ -17,13 +15,16 @@ export const fetchStats = () => {
   });
 };
 
-// export const fetchProducts = () => api.get("/products");
-
 export const fetchProducts = () =>
-  api.get("/products").then(res => {
-    console.log("API /products response:", res.data);
-    return res.data.items || res.data;
-  });
+  api.get("/products")
+    .then(res => {
+      console.log("API /products response:", res.data);
+      return res.data.items || res.data;
+    })
+    .catch(err => {
+      console.error("API /products error:", err);
+      return [];
+    });
 
 export const fetchProductById = (id: string) => api.get(`/products/${id}`);
 export const fetchComments = (productId: string) => api.get(`/products/${productId}/comments`);

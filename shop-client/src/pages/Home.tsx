@@ -7,10 +7,6 @@ const Home = () => {
   const [stats, setStats] = useState<{ count: number; totalPrice: number } | null>(null);
   const navigate = useNavigate();
 
-//   useEffect(() => {
-//   fetchStats().then(data => setStats(data));
-// }, []);
-
   useEffect(() => {
     console.log("Home component: Starting fetchStats...");
     fetchStats()

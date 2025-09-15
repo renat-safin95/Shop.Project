@@ -19,11 +19,11 @@ const ProductsList = () => {
   const [priceTo, setPriceTo] = useState("");
   
   useEffect(() => {
-    fetchProducts().then(data => {
-      setProducts(data);
-      setLoading(false);
-    });
-  }, []);
+  fetchProducts()
+    .then(data => setProducts(data))
+    .finally(() => setLoading(false));
+}, []);
+
 
   const filtered = products.filter(p =>
     p.title.toLowerCase().includes(search.toLowerCase()) &&

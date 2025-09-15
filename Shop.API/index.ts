@@ -3,6 +3,7 @@ import { Connection } from "mysql2/promise";
 import { commentsRouter } from "./src/api/comments-api"
 import { createProductsRouter } from "./src/api/products-api";
 import { authRouter } from "./src/api/auth-api";
+import { productsApiRouter } from "./controllers/products.controller"; 
 
 export let connection: Connection;
 
@@ -13,8 +14,7 @@ export default function (dbConnection: Connection): Express {
   connection = dbConnection;
 
   app.use("/comments", commentsRouter);
-  const productsRouter = createProductsRouter(dbConnection);
-  app.use("/products", productsRouter);
+  app.use("/products", productsApiRouter(dbConnection));
   app.use("/auth", authRouter);
 
   return app;
