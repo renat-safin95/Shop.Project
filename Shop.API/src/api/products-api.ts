@@ -17,7 +17,11 @@ import {
   DELETE_IMAGES_QUERY,
   INSERT_PRODUCT_IMAGES_QUERY,
   INSERT_PRODUCT_QUERY,
-  REPLACE_PRODUCT_THUMBNAIL, UPDATE_PRODUCT_FIELDS
+  REPLACE_PRODUCT_THUMBNAIL,
+  UPDATE_PRODUCT_FIELDS,
+  SELECT_RELATED_PRODUCTS,
+  INSERT_RELATED_PRODUCTS,
+  DELETE_RELATED_PRODUCTS,
 } from "../services/queries";
 
 export const productsRouter = Router();
@@ -96,6 +100,11 @@ productsRouter.get('/:id', async (
       [req.params.id]
     );
 
+    const [related] = await connection.query<IProductEntity[]>(
+      SELECT_RELATED_PRODUCTS,
+      [req.params.id]
+    );
+
     const product = mapProductsEntity(rows)[0];
 
     if (comments.length) {
@@ -105,6 +114,10 @@ productsRouter.get('/:id', async (
     if (images.length) {
       product.images = mapImagesEntity(images);
       product.thumbnail = product.images.find(image => image.main) || product.images[0];
+    }
+
+    if (images.length) {
+      product.related = related;
     }
 
     res.send(product);
@@ -143,6 +156,11 @@ productsRouter.delete('/:id', async (
   res: Response
 ) => {
   try {
+    await connection.query<OkPacket>(
+      DELETE_RELATED_PRODUCTS,
+      [req.params.id, req.params.id]
+    );
+
     const [rows] = await connection.query<IProductEntity[]>(
       "SELECT * FROM products WHERE product_id = ?",
       [req.params.id]
@@ -309,3 +327,112 @@ productsRouter.patch('/:id', async (
     throwServerError(res, e);
   }
 });
+
+productsRouter.get('/:id/related', async (
+  req: Request<{ id: string }>,
+  res: Response
+) => {
+  try {
+    const [rows] = await dbConnection.query<IProductEntity[]>(
+      SELECT_RELATED_PRODUCTS,
+      [req.params.id]
+    );
+
+    res.send(rows);
+  } catch (e) {
+    throwServerError(res, e);
+  }
+});
+
+productsRouter.post('/related', async (
+  req: Request<{}, {}, { product_id: string; related_product_id: string }[]>,
+  res: Response
+) => {
+  try {
+    const pairs = req.body;
+
+    if (!Array.isArray(pairs) || !pairs.length) {
+      res.status(400).send("Body must be a non-empty array");
+      return;
+    }
+
+    const values = pairs.map(p => [p.product_id, p.related_product_id]);
+
+    await dbConnection.query<OkPacket>(INSERT_RELATED_PRODUCTS, [values]);
+
+    res.status(201).send("Relations have been added!");
+  } catch (e: any) {
+    if (e.code === "ER_DUP_ENTRY") {
+      res.status(400).send("Some relations already exist");
+      return;
+    }
+    throwServerError(res, e);
+  }
+});
+
+productsRouter.delete('/related', async (
+  req: Request<{}, {}, string[]>,
+  res: Response
+) => {
+  try {
+    const productIds = req.body;
+
+    if (!Array.isArray(productIds) || !productIds.length) {
+      res.status(400).send("Body must be a non-empty array");
+      return;
+    }
+
+    const [info] = await dbConnection.query<OkPacket>(
+      DELETE_RELATED_PRODUCTS,
+      [productIds]
+    );
+
+    if (info.affectedRows === 0) {
+      res.status(404).send("No relations found for provided ids");
+      return;
+    }
+
+    res.status(200).send("Relations have been deleted!");
+  } catch (e) {
+    throwServerError(res, e);
+  }
+});
+
+productsRouter.post("/:id/related/add", async (req, res) => {
+  const { id } = req.params;
+  const { relatedIds } = req.body;
+
+  if (!Array.isArray(relatedIds) || relatedIds.length === 0) {
+    return res.status(400).json({ error: "relatedIds must be a non-empty array" });
+  }
+
+  try {
+    const values = relatedIds.map((rid: string) => [id, rid]);
+    await dbConnection.query(INSERT_RELATED_PRODUCTS, [values]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to add related products" });
+  }
+});
+
+productsRouter.post("/:id/related/remove", async (req, res) => {
+  const { id } = req.params;
+  const { relatedIds } = req.body;
+
+  if (!Array.isArray(relatedIds) || relatedIds.length === 0) {
+    return res.status(400).json({ error: "relatedIds must be a non-empty array" });
+  }
+
+  try {
+    await dbConnection.query(DELETE_RELATED_PRODUCTS, [id, relatedIds]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to remove related products" });
+  }
+});
+
+  return productsRouter;
+};

@@ -12,4 +12,6 @@ export interface IProductEditData {
   newImages?: string;
   commentsToRemove: string | string[];
   imagesToRemove: string | string[];
+  relatedToAdd?: string | string[];
+  relatedToRemove?: string | string[];
 }

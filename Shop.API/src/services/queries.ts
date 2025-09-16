@@ -46,3 +46,23 @@ export const UPDATE_PRODUCT_FIELDS = `
     SET title = ?, description = ?, price = ? 
     WHERE product_id = ?
 `
+
+export const SELECT_RELATED_PRODUCTS = `
+    SELECT DISTINCT p.product_id, p.title, p.description, p.price
+    FROM related_products r
+        JOIN products p ON r.related_product_id = p.product_id
+        OR r.product_id = p.product_id
+    WHERE (r.product_id = ? OR r.related_product_id = ?)
+        AND p.product_id != ?
+`;
+
+export const INSERT_RELATED_PRODUCTS = `
+  INSERT INTO related_products (product_id, related_product_id)
+  VALUES (?, ?)
+`;
+
+export const DELETE_RELATED_PRODUCTS = `
+  DELETE FROM related_products
+  WHERE (product_id = ? AND related_product_id IN (?))
+    OR (related_product_id = ? AND product_id IN (?));
+`;

@@ -31,6 +31,19 @@ export async function getProduct(
   }
 }
 
+export async function getRelatedProducts(productId: string): Promise<IProduct[]> {
+  const { data } = await axios.get<IProduct[]>(`${API_HOST}/products/${productId}/related`);
+  return data || [];
+}
+
+export async function addRelatedProducts(productId: string, relatedIds: string[]): Promise<void> {
+  await axios.post(`${API_HOST}/products/${productId}/related/add`, { relatedIds });
+}
+
+export async function removeRelatedProducts(productId: string, relatedIds: string[]): Promise<void> {
+  await axios.post(`${API_HOST}/products/${productId}/related/remove`, { relatedIds });
+}
+
 export async function removeProduct(id: string): Promise<void> {
   await axios.delete(`${API_HOST}/products/${id}`);
 }
@@ -50,7 +63,7 @@ function compileIdsToRemove(data: string | string[]): string[] {
 export async function updateProduct(
   productId: string,
   formData: IProductEditData
-): Promise<void> {
+): Promise<IProduct | null> {
   try {
     const { data: currentProduct } = await axios.get<IProduct>(`${API_HOST}/products/${productId}`);
 
@@ -87,11 +100,25 @@ export async function updateProduct(
       });
     }
 
+    if (formData.relatedToRemove) {
+      const relatedIdsToRemove = compileIdsToRemove(formData.relatedToRemove);
+      await removeRelatedProducts(productId, relatedIdsToRemove);
+    }
+
+    if (formData.relatedToAdd) {
+      const relatedIdsToAdd = compileIdsToRemove(formData.relatedToAdd);
+      await addRelatedProducts(productId, relatedIdsToAdd);
+    }
+
     await axios.patch(`${API_HOST}/products/${productId}`, {
       title: formData.title,
       description: formData.description,
       price: Number(formData.price)
     });
+
+    const updatedRelated = await getRelatedProducts(productId);
+    return { ...currentProduct, related: updatedRelated };
+
   } catch (e) {
     console.log(e);
   }
