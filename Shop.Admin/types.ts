@@ -12,12 +12,4 @@ export interface IProductEditData {
   newImages?: string;
   commentsToRemove: string | string[];
   imagesToRemove: string | string[];
-  relatedToAdd?: string | string[];
-  relatedToRemove?: string | string[];
-}
-
-export interface INewProductData {
-  name: string;
-  description: string;
-  price: number;
 }

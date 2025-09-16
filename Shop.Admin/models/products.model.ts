@@ -25,31 +25,10 @@ export async function getProduct(
     const { data } = await axios.get<IProduct>(
       `${API_HOST}/products/${id}`
     );
-
-    const { data: relatedProducts } = await axios.get<IProduct[]>(
-      `${API_HOST}/products/${id}/related`
-    );
-
-    return {
-      ...data,
-      related: relatedProducts
-    };
+    return data;
   } catch (e) {
     return null;
   }
-}
-
-export async function getRelatedProducts(productId: string): Promise<IProduct[]> {
-  const { data } = await axios.get<IProduct[]>(`${API_HOST}/products/${productId}/related`);
-  return data || [];
-}
-
-export async function addRelatedProducts(productId: string, relatedIds: string[]): Promise<void> {
-  await axios.post(`${API_HOST}/products/${productId}/related/add`, { relatedIds });
-}
-
-export async function removeRelatedProducts(productId: string, relatedIds: string[]): Promise<void> {
-  await axios.post(`${API_HOST}/products/${productId}/related/remove`, { relatedIds });
 }
 
 export async function removeProduct(id: string): Promise<void> {
@@ -71,16 +50,18 @@ function compileIdsToRemove(data: string | string[]): string[] {
 export async function updateProduct(
   productId: string,
   formData: IProductEditData
-): Promise<IProduct | null> {
+): Promise<void> {
   try {
     const { data: currentProduct } = await axios.get<IProduct>(`${API_HOST}/products/${productId}`);
 
     if (formData.commentsToRemove) {
       const commentsIdsToRemove = compileIdsToRemove(formData.commentsToRemove);
-      const deleteActions = commentsIdsToRemove.map(commentId => 
-        axios.delete(`${API_HOST}/comments/${commentId}`)
-      );
-      await Promise.all(deleteActions);
+
+      const getDeleteCommentActions = () => commentsIdsToRemove.map(commentId => {
+        return axios.delete(`${API_HOST}/comments/${commentId}`);
+      });
+
+      await Promise.all(getDeleteCommentActions());
     }
 
     if (formData.imagesToRemove) {
@@ -90,10 +71,13 @@ export async function updateProduct(
 
     if (formData.newImages) {
       const urls = splitNewImages(formData.newImages);
+
       const images = urls.map(url => ({ url, main: false }));
-      if (!currentProduct.thumbnail && images.length > 0) {
+
+      if (!currentProduct.thumbnail) {
         images[0].main = true;
       }
+
       await axios.post(`${API_HOST}/products/add-images`, { productId, images });
     }
 
@@ -103,39 +87,13 @@ export async function updateProduct(
       });
     }
 
-    if (formData.relatedToRemove) {
-      const relatedIdsToRemove = compileIdsToRemove(formData.relatedToRemove);
-      await removeRelatedProducts(productId, relatedIdsToRemove);
-    }
-
-    if (formData.relatedToAdd) {
-      const relatedIdsToAdd = compileIdsToRemove(formData.relatedToAdd);
-      await addRelatedProducts(productId, relatedIdsToAdd);
-    }
-
     await axios.patch(`${API_HOST}/products/${productId}`, {
       title: formData.title,
       description: formData.description,
       price: Number(formData.price)
     });
-
-    const updatedRelated = await getRelatedProducts(productId);
-    return { ...currentProduct, related: updatedRelated };
-
   } catch (e) {
     console.log(e);
-    return null;
   }
 }
 
-export async function createProduct(productData: {
-  name: string;
-  description: string;
-  price: number;
-}): Promise<IProduct> {
-  const response = await axios.post<IProduct>(
-    "http://localhost:3000/products",
-    productData
-  );
-  return response.data;
-}

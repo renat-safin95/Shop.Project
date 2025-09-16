@@ -52,9 +52,6 @@
         </div>
     <% } %>
 
-    <div><%- include('product-related', { item: item }) %></div>
-    <div><%- include('product-related-add', { otherProducts: otherProducts }) %></div>
-
     <div class="product-edit-footer">
         <button type="submit">Save changes</button>
         <a href="<%= `remove-product/${item.id}` %>">Delete product</a>

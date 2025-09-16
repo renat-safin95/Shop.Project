@@ -14,7 +14,6 @@ export interface IProduct {
   thumbnail?: IProductImage;
   comments?: IComment[];
   images?: IProductImage[];
-  related?: IProduct[];
 }
 
 export interface IProductImage {

@@ -7,7 +7,6 @@ import { mapCommentsEntity } from "../services/mapping";
 import { OkPacket } from "mysql2";
 import { COMMENT_DUPLICATE_QUERY, INSERT_COMMENT_QUERY } from "../services/queries";
 import { IComment } from "@Shared/types";
-import { param, validationResult } from "express-validator";
 
 export const commentsRouter = Router();
 
@@ -26,18 +25,8 @@ commentsRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-commentsRouter.get('/:id', [
-  param('id').isUUID().withMessage('Comment id is not UUID')
-],
-async (req: Request<{ id: string }>, res: Response) => {
+commentsRouter.get('/:id', async (req: Request<{ id: string }>, res: Response) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400);
-      res.json({ errors: errors.array() });
-      return;
-    }
-
     const [rows] = await connection.query<ICommentEntity[]>(
       "SELECT * FROM comments WHERE comment_id = ?",
       [req.params.id]

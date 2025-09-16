@@ -48,11 +48,15 @@ authRouter.post("/authenticate", async (
   }
 });
 
+/**
+ * 35.4.1
+ * метод logout для выхода из админки
+ */
 authRouter.get("/logout", async (req: Request, res: Response) => {
   try {
     req.session.destroy((e) => {
       if (e) {
-        console.log("Something went wrong with session destroying", e);
+        console.log("Something wen wrong with session destroying", e);
       }
 
       res.redirect(`/${process.env.ADMIN_PATH}/auth/login`);

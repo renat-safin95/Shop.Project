@@ -1,6 +1,16 @@
 import { RowDataPacket } from "mysql2/index";
 import { IAuthRequisites, IComment, IProduct, IProductFilterPayload, IProductImage } from "@Shared/types";
 
+
+
+
+
+
+
+
+
+
+
 export type CommentCreatePayload = Omit<IComment, "id">;
 
 export interface ICommentEntity extends RowDataPacket {
