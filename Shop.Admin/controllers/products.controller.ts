@@ -26,7 +26,7 @@ productsRouter.get('/search', async (
     const products = await searchProducts(req.query);
     res.render("products", {
       items: products,
-      queryParams: req.query
+      queryParams: req.query,
     });
   } catch (e) {
     throwServerError(res, e);
